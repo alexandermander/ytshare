@@ -45,13 +45,13 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
     dragging.current = true;
-    const startX = e.clientX;
-    const startY = e.clientY;
+    const startX = e.pageX;
+    const startY = e.pageY;
     const init = categories[index];
 
     const onMove = (ev: MouseEvent) => {
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
+      const dx = ev.pageX - startX;
+      const dy = ev.pageY - startY;
       setCategories((cats) => {
         const newCats = [...cats];
         newCats[index] = { ...newCats[index], x: init.x + dx, y: init.y + dy };
