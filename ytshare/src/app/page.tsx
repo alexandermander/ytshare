@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface Video {
   link: string;
@@ -40,6 +40,36 @@ export default function Home() {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({ General: true });
   const [showCatEditor, setShowCatEditor] = useState(false);
   const dragging = useRef(false);
+  const categoriesRef = useRef<Category[]>([]);
+
+  const saveCategories = (cats: Category[]) => {
+    fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cats),
+    });
+  };
+
+  useEffect(() => {
+    categoriesRef.current = categories;
+  }, [categories]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data: Category[]) => {
+        setCategories(data);
+        setOpenCats(
+          data.reduce<Record<string, boolean>>((acc, c) => {
+            acc[c.name] = true;
+            return acc;
+          }, {})
+        );
+      });
+    fetch("/api/videos")
+      .then((res) => res.json())
+      .then((data: Video[]) => setVideos(data));
+  }, []);
 
   const startDrag = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
@@ -65,6 +95,7 @@ export default function Home() {
       setTimeout(() => {
         dragging.current = false;
       }, 0);
+      saveCategories(categoriesRef.current);
     };
 
     document.addEventListener("mousemove", onMove);
@@ -78,6 +109,7 @@ export default function Home() {
     setCategories((cats) => {
       const newCats = [...cats];
       newCats[index] = { ...newCats[index], ...data };
+      saveCategories(newCats);
       return newCats;
     });
   };
@@ -92,9 +124,16 @@ export default function Home() {
     const cat = selectedCategory === "__new__" ? newCategory.trim() : selectedCategory;
     if (!cat) return;
     if (selectedCategory === "__new__" && !categories.some((c) => c.name === cat)) {
-      setCategories([...categories, { name: cat, x: 0, y: 0 }]);
+      const newCats = [...categories, { name: cat, x: 0, y: 0 }];
+      setCategories(newCats);
       setOpenCats({ ...openCats, [cat]: true });
+      saveCategories(newCats);
     }
+    fetch("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ link, category: cat, description }),
+    });
     setVideos([...videos, { link, category: cat, description }]);
     setLink("");
     setSelectedCategory("General");
