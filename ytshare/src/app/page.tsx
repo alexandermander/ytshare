@@ -167,6 +167,15 @@ export default function Home() {
     });
     setVideos([...videos, { link, category: cat, description }]);
     setLink("");
+  const handleDelete = (delLink: string) => {
+    fetch("/api/videos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ link: delLink }),
+    });
+    setVideos((vs) => vs.filter((v) => v.link !== delLink));
+  };
+
     setSelectedCategory("First");
     setNewCategory("");
     setDescription("");
@@ -227,7 +236,20 @@ export default function Home() {
               </span>
             </button>
           <ul
-            className={`grid gap-4 mt-2 transition-all duration-300 ${
+                    className="relative w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
+                    <button
+                      onClick={() => handleDelete(video.link)}
+                      className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-5 h-5"
+                      >
+                        <path d="M3 6h18M9 6V4h6v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h12z" />
+                      </svg>
+                    </button>
               openCats[c.name] ? "max-h-screen" : "max-h-0 overflow-hidden"
             }`}
           >
