@@ -9,4 +9,7 @@ export interface Category {
 }
 
 export const videos: Video[] = [];
-export const categories: Category[] = [{ name: "General" }];
+export const categories: Category[] = [{ name: "Alex watch this" }];
+
+
+

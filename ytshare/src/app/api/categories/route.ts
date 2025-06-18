@@ -5,6 +5,7 @@ export async function GET() {
   return NextResponse.json(categories);
 }
 
+
 export async function POST(req: NextRequest) {
   const data = (await req.json()) as Category[];
   categories.splice(0, categories.length, ...data);

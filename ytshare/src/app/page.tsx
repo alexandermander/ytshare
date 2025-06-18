@@ -36,10 +36,10 @@ export default function Home() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("General");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({ General: true });
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({ First: true });
   const [showCatEditor, setShowCatEditor] = useState(false);
   const dragging = useRef(false);
   const categoriesRef = useRef<Category[]>([]);
@@ -167,7 +167,7 @@ export default function Home() {
     });
     setVideos([...videos, { link, category: cat, description }]);
     setLink("");
-    setSelectedCategory("General");
+    setSelectedCategory("First");
     setNewCategory("");
     setDescription("");
     setStep(1);
@@ -227,7 +227,7 @@ export default function Home() {
               </span>
             </button>
           <ul
-            className={`grid gap-4 mt-2 md:grid-cols-2 lg:grid-cols-3 transition-all duration-300 ${
+            className={`grid gap-4 mt-2 transition-all duration-300 ${
               openCats[c.name] ? "max-h-screen" : "max-h-0 overflow-hidden"
             }`}
           >
@@ -271,7 +271,7 @@ export default function Home() {
                   setShowOverlay(false);
                   setStep(1);
                   setNewCategory("");
-                  setSelectedCategory("General");
+                  setSelectedCategory("Alex watch this");
                 }}
                 className="text-gray-400 hover:text-white text-xl font-bold"
               >
