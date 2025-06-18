@@ -36,52 +36,72 @@ export default function Home() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [newCategory, setNewCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({ First: true });
-  const [showCatEditor, setShowCatEditor] = useState(false);
-  const dragging = useRef(false);
-  const categoriesRef = useRef<Category[]>([]);
-
-  const saveCategoryNames = (cats: Category[]) => {
-    fetch("/api/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cats.map((c) => ({ name: c.name }))),
-    });
-  };
-
-  const savePositions = (cats: Category[]) => {
-    const data = cats.reduce<Record<string, { x: number; y: number }>>(
-      (acc, c) => {
-        acc[c.name] = { x: c.x, y: c.y };
-        return acc;
-      },
-      {}
-    );
-    if (typeof window !== "undefined") {
-      localStorage.setItem("catPos", JSON.stringify(data));
-    }
-  };
-
-  useEffect(() => {
-    categoriesRef.current = categories;
-  }, [categories]);
-
-
-  useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data: ServerCategory[]) => {
-        let saved: Record<string, { x: number; y: number }> = {};
-        if (typeof window !== "undefined") {
-          try {
-            saved = JSON.parse(localStorage.getItem("catPos") || "{}");
-          } catch {
-            saved = {};
-          }
-        }
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({
+    General: true,
+  });
+      {},
+          })),
+          }, {}),
+    data: Partial<Omit<Category, "name">>,
+    const cat =
+      selectedCategory === "__new__" ? newCategory.trim() : selectedCategory;
+    if (
+      selectedCategory === "__new__" &&
+      !categories.some((c) => c.name === cat)
+    ) {
+      {categories.map((c, idx) => (
+        <div
+          key={c.name}
+          className="mb-4 absolute w-max"
+          style={{ left: c.x, top: c.y }}
+        >
+          <button
+            onClick={() => toggleCat(c.name)}
+            className="w-full max-w-sm flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded"
+            <span className="flex items-center">
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  startDrag(e, idx);
+                }}
+                className="mr-2 cursor-move text-gray-300 hover:text-white"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path d="M4 9h16v2H4zm0 4h16v2H4z" />
+                </svg>
+              {c.name}
+            </span>
+            <span
+              className={`transform transition-transform ${openCats[c.name] ? "rotate-90" : ""}`}
+            >
+              ▶
+            </span>
+          </button>
+                const thumb = id
+                  ? `https://img.youtube.com/vi/${id}/0.jpg`
+                  : null;
+                    <a
+                      href={video.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                        <img
+                          className="p-4 rounded-t-lg"
+                          src={thumb}
+                          alt="Video thumbnail"
+                        />
+                        <span className="text-blue-600 underline p-4 block">
+                          {video.link}
+                        </span>
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        {video.category}
+                      </p>
+              <h2 className="text-lg font-semibold">
+                Add your video link here
+              </h2>
         setCategories(
           data.map((c) => ({
             name: c.name,
@@ -379,13 +399,17 @@ export default function Home() {
                   <input
                     type="number"
                     value={c.x}
-                    onChange={(e) => updateCategory(i, { x: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateCategory(i, { x: parseInt(e.target.value) || 0 })
+                    }
                     className="p-1 rounded bg-gray-700 border border-gray-600 w-24"
                   />
                   <input
                     type="number"
                     value={c.y}
-                    onChange={(e) => updateCategory(i, { y: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateCategory(i, { y: parseInt(e.target.value) || 0 })
+                    }
                     className="p-1 rounded bg-gray-700 border border-gray-600 w-24"
                   />
                 </div>
