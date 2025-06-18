@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface Video {
   link: string;
@@ -39,9 +39,12 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({ General: true });
   const [showCatEditor, setShowCatEditor] = useState(false);
+  const dragging = useRef(false);
 
   const startDrag = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
+    dragging.current = true;
     const startX = e.clientX;
     const startY = e.clientY;
     const init = categories[index];
@@ -59,6 +62,9 @@ export default function Home() {
     const onUp = () => {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      setTimeout(() => {
+        dragging.current = false;
+      }, 0);
     };
 
     document.addEventListener("mousemove", onMove);
@@ -77,6 +83,7 @@ export default function Home() {
   };
 
   const toggleCat = (c: string) => {
+    if (dragging.current) return;
     setOpenCats({ ...openCats, [c]: !openCats[c] });
   };
 
@@ -116,7 +123,7 @@ export default function Home() {
         {categories.map((c, idx) => (
           <div
             key={c.name}
-            className="mb-4 absolute"
+            className="mb-4 absolute w-max"
             style={{ left: c.x, top: c.y }}
           >
 
