@@ -20,7 +20,14 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: 
+    radial-gradient(circle at bottom left, #1b2a3a 20%, transparent 60%),
+    radial-gradient(circle at bottom right, #1e2f29 0%, transparent 60%),
+    linear-gradient(to bottom, #121212, #0f0f0f);
+  background-blend-mode: screen;
+  color: #e0e0e0;
 }
+
