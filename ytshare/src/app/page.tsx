@@ -113,20 +113,41 @@ export default function Home() {
         Manage Categories
       </button>
 
-      {categories.map((c, idx) => (
-        <div
-          key={c.name}
-          className="mb-4 absolute"
-          style={{ left: c.x, top: c.y }}
-        >
-          <button
-            onMouseDown={(e) => startDrag(e, idx)}
-            onClick={() => toggleCat(c.name)}
-            className="w-full flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded cursor-move"
+        {categories.map((c, idx) => (
+          <div
+            key={c.name}
+            className="mb-4 absolute max-w-sm w-full"
+            style={{ left: c.x, top: c.y }}
           >
-            <span>{c.name}</span>
-            <span className={`transform transition-transform ${openCats[c.name] ? "rotate-90" : ""}`}>▶</span>
-          </button>
+            <button
+              onClick={() => toggleCat(c.name)}
+              className="w-full flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded"
+            >
+              <span className="flex items-center">
+                <span
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    startDrag(e, idx);
+                  }}
+                  className="mr-2 cursor-move text-gray-300 hover:text-white"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path d="M4 9h16v2H4zm0 4h16v2H4z" />
+                  </svg>
+                </span>
+                {c.name}
+              </span>
+              <span
+                className={`transform transition-transform ${openCats[c.name] ? "rotate-90" : ""}`}
+              >
+                ▶
+              </span>
+            </button>
           <ul
             className={`grid gap-4 mt-2 md:grid-cols-2 lg:grid-cols-3 transition-all duration-300 ${
               openCats[c.name] ? "max-h-screen" : "max-h-0 overflow-hidden"
