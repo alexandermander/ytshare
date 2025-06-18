@@ -116,12 +116,12 @@ export default function Home() {
         {categories.map((c, idx) => (
           <div
             key={c.name}
-            className="mb-4 absolute max-w-sm w-full"
+            className="mb-4 absolute"
             style={{ left: c.x, top: c.y }}
           >
             <button
               onClick={() => toggleCat(c.name)}
-              className="w-full flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded"
+              className="w-full max-w-sm flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded"
             >
               <span className="flex items-center">
                 <span
