@@ -8,6 +8,12 @@ interface Video {
   description: string;
 }
 
+interface Category {
+  name: string;
+  x: number;
+  y: number;
+}
+
 function getVideoId(url: string): string | null {
   try {
     const u = new URL(url);
@@ -25,11 +31,50 @@ export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [showOverlay, setShowOverlay] = useState(false);
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState<string[]>(["General"]);
+  const [categories, setCategories] = useState<Category[]>([
+    { name: "General", x: 0, y: 0 },
+  ]);
   const [selectedCategory, setSelectedCategory] = useState("General");
   const [newCategory, setNewCategory] = useState("");
   const [description, setDescription] = useState("");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({ General: true });
+  const [showCatEditor, setShowCatEditor] = useState(false);
+
+  const startDrag = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const init = categories[index];
+
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      setCategories((cats) => {
+        const newCats = [...cats];
+        newCats[index] = { ...newCats[index], x: init.x + dx, y: init.y + dy };
+        return newCats;
+      });
+    };
+
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
+
+  const updateCategory = (
+    index: number,
+    data: Partial<Omit<Category, "name">>
+  ) => {
+    setCategories((cats) => {
+      const newCats = [...cats];
+      newCats[index] = { ...newCats[index], ...data };
+      return newCats;
+    });
+  };
 
   const toggleCat = (c: string) => {
     setOpenCats({ ...openCats, [c]: !openCats[c] });
@@ -39,8 +84,8 @@ export default function Home() {
     if (!link) return;
     const cat = selectedCategory === "__new__" ? newCategory.trim() : selectedCategory;
     if (!cat) return;
-    if (selectedCategory === "__new__" && !categories.includes(cat)) {
-      setCategories([...categories, cat]);
+    if (selectedCategory === "__new__" && !categories.some((c) => c.name === cat)) {
+      setCategories([...categories, { name: cat, x: 0, y: 0 }]);
       setOpenCats({ ...openCats, [cat]: true });
     }
     setVideos([...videos, { link, category: cat, description }]);
@@ -53,7 +98,7 @@ export default function Home() {
   };
 
   return (
-    <main className="p-4">
+    <main className="p-4 relative min-h-screen">
       <h1 className="text-xl font-bold mb-4">Share YouTube videos</h1>
       <button
         onClick={() => setShowOverlay(true)}
@@ -61,23 +106,34 @@ export default function Home() {
       >
         Add Video
       </button>
+      <button
+        onClick={() => setShowCatEditor(true)}
+        className="bg-gray-600 text-white px-4 py-2 mb-4 rounded-lg ml-2"
+      >
+        Manage Categories
+      </button>
 
-      {categories.map((c) => (
-        <div key={c} className="mb-4">
+      {categories.map((c, idx) => (
+        <div
+          key={c.name}
+          className="mb-4 absolute"
+          style={{ left: c.x, top: c.y }}
+        >
           <button
-            onClick={() => toggleCat(c)}
-            className="w-full flex justify-between items-center bg-gray-700 text-white px-4 py-2 rounded"
+            onMouseDown={(e) => startDrag(e, idx)}
+            onClick={() => toggleCat(c.name)}
+            className="w-full flex justify-between items-center bg-gray-700 text-white px-2 py-1 rounded cursor-move"
           >
-            <span>{c}</span>
-            <span className={`transform transition-transform ${openCats[c] ? "rotate-90" : ""}`}>▶</span>
+            <span>{c.name}</span>
+            <span className={`transform transition-transform ${openCats[c.name] ? "rotate-90" : ""}`}>▶</span>
           </button>
           <ul
             className={`grid gap-4 mt-2 md:grid-cols-2 lg:grid-cols-3 transition-all duration-300 ${
-              openCats[c] ? "max-h-screen" : "max-h-0 overflow-hidden"
+              openCats[c.name] ? "max-h-screen" : "max-h-0 overflow-hidden"
             }`}
           >
             {videos
-              .filter((v) => v.category === c)
+              .filter((v) => v.category === c.name)
               .map((video, index) => {
                 const id = getVideoId(video.link);
                 const thumb = id ? `https://img.youtube.com/vi/${id}/0.jpg` : null;
@@ -150,8 +206,8 @@ export default function Home() {
                     className="w-full p-2 rounded bg-gray-700 border border-gray-600 mb-2 text-white"
                   >
                     {categories.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                      <option key={c.name} value={c.name}>
+                        {c.name}
                       </option>
                     ))}
                     <option value="__new__">Add new...</option>
@@ -179,6 +235,41 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showCatEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md text-white">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Category positions</h2>
+              <button
+                onClick={() => setShowCatEditor(false)}
+                className="text-gray-400 hover:text-white text-xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+            {categories.map((c, i) => (
+              <div key={c.name} className="mb-2">
+                <p className="font-semibold">{c.name}</p>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    value={c.x}
+                    onChange={(e) => updateCategory(i, { x: parseInt(e.target.value) || 0 })}
+                    className="p-1 rounded bg-gray-700 border border-gray-600 w-24"
+                  />
+                  <input
+                    type="number"
+                    value={c.y}
+                    onChange={(e) => updateCategory(i, { y: parseInt(e.target.value) || 0 })}
+                    className="p-1 rounded bg-gray-700 border border-gray-600 w-24"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
