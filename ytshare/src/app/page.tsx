@@ -1,6 +1,18 @@
 "use client";
 
 import { useState } from "react";
+
+function getVideoId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "youtu.be") {
+      return u.pathname.slice(1);
+    }
+    return u.searchParams.get("v");
+  } catch {
+    return null;
+  }
+}
 export default function Home() {
   const [link, setLink] = useState("");
   const [videos, setVideos] = useState<string[]>([]);
@@ -28,19 +40,28 @@ export default function Home() {
           Share
         </button>
       </div>
-      <ul className="list-disc pl-5">
-        {videos.map((video, index) => (
-          <li key={index}>
-            <a
-              href={video}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
-              {video}
-            </a>
-          </li>
-        ))}
+      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {videos.map((video, index) => {
+          const id = getVideoId(video);
+          const thumb = id
+            ? `https://img.youtube.com/vi/${id}/0.jpg`
+            : null;
+          return (
+            <li key={index} className="list-none">
+              <a href={video} target="_blank" rel="noopener noreferrer">
+                {thumb ? (
+                  <img
+                    src={thumb}
+                    alt="Video thumbnail"
+                    className="w-full max-w-xs border"
+                  />
+                ) : (
+                  <span className="text-blue-600 underline">{video}</span>
+                )}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </main>
   );
