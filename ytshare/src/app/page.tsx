@@ -14,6 +14,10 @@ interface Category {
   y: number;
 }
 
+interface ServerCategory {
+  name: string;
+}
+
 function getVideoId(url: string): string | null {
   try {
     const u = new URL(url);
@@ -31,9 +35,7 @@ export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [showOverlay, setShowOverlay] = useState(false);
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState<Category[]>([
-    { name: "General", x: 0, y: 0 },
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("General");
   const [newCategory, setNewCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -42,23 +44,51 @@ export default function Home() {
   const dragging = useRef(false);
   const categoriesRef = useRef<Category[]>([]);
 
-  const saveCategories = (cats: Category[]) => {
+  const saveCategoryNames = (cats: Category[]) => {
     fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cats),
+      body: JSON.stringify(cats.map((c) => ({ name: c.name }))),
     });
+  };
+
+  const savePositions = (cats: Category[]) => {
+    const data = cats.reduce<Record<string, { x: number; y: number }>>(
+      (acc, c) => {
+        acc[c.name] = { x: c.x, y: c.y };
+        return acc;
+      },
+      {}
+    );
+    if (typeof window !== "undefined") {
+      localStorage.setItem("catPos", JSON.stringify(data));
+    }
   };
 
   useEffect(() => {
     categoriesRef.current = categories;
   }, [categories]);
 
+
   useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
-      .then((data: Category[]) => {
-        setCategories(data);
+      .then((data: ServerCategory[]) => {
+        let saved: Record<string, { x: number; y: number }> = {};
+        if (typeof window !== "undefined") {
+          try {
+            saved = JSON.parse(localStorage.getItem("catPos") || "{}");
+          } catch {
+            saved = {};
+          }
+        }
+        setCategories(
+          data.map((c) => ({
+            name: c.name,
+            x: saved[c.name]?.x || 0,
+            y: saved[c.name]?.y || 0,
+          }))
+        );
         setOpenCats(
           data.reduce<Record<string, boolean>>((acc, c) => {
             acc[c.name] = true;
@@ -95,7 +125,7 @@ export default function Home() {
       setTimeout(() => {
         dragging.current = false;
       }, 0);
-      saveCategories(categoriesRef.current);
+      savePositions(categoriesRef.current);
     };
 
     document.addEventListener("mousemove", onMove);
@@ -109,7 +139,7 @@ export default function Home() {
     setCategories((cats) => {
       const newCats = [...cats];
       newCats[index] = { ...newCats[index], ...data };
-      saveCategories(newCats);
+      savePositions(newCats);
       return newCats;
     });
   };
@@ -127,7 +157,8 @@ export default function Home() {
       const newCats = [...categories, { name: cat, x: 0, y: 0 }];
       setCategories(newCats);
       setOpenCats({ ...openCats, [cat]: true });
-      saveCategories(newCats);
+      saveCategoryNames(newCats);
+      savePositions(newCats);
     }
     fetch("/api/videos", {
       method: "POST",
