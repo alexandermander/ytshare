@@ -174,6 +174,15 @@ export default function Home() {
     setShowOverlay(false);
   };
 
+  const handleDelete = (index: number) => {
+    fetch("/api/videos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ index }),
+    });
+    setVideos((v) => v.filter((_, i) => i !== index));
+  };
+
   return (
     <main className="p-4 relative min-h-screen">
       <h1 className="text-xl font-bold mb-4">Share YouTube videos</h1>
@@ -232,14 +241,15 @@ export default function Home() {
             }`}
           >
             {videos
-              .filter((v) => v.category === c.name)
-              .map((video, index) => {
+              .map((video, index) => ({ video, index }))
+              .filter(({ video }) => video.category === c.name)
+              .map(({ video, index }) => {
                 const id = getVideoId(video.link);
                 const thumb = id ? `https://img.youtube.com/vi/${id}/0.jpg` : null;
                 return (
                   <li
                     key={index}
-                    className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
+                    className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 relative"
                   >
                     <a href={video.link} target="_blank" rel="noopener noreferrer">
                       {thumb ? (
@@ -254,6 +264,20 @@ export default function Home() {
                       </h5>
                       <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{video.category}</p>
                     </div>
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                      title="Delete"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-5 h-5"
+                      >
+                        <path d="M9 3h6a1 1 0 011 1v1h5v2H4V5h5V4a1 1 0 011-1zm1 6v8h2V9h-2zm4 0v8h2V9h-2zM5 8h14l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 8z" />
+                      </svg>
+                    </button>
                   </li>
                 );
               })}
